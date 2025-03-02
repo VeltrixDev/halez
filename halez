@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elo Chess.com</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;700&display=swap');
+        body {
+            background: transparent; 
+            font-family: 'Bodoni Moda', sans-serif;
+            color: #000000; 
+            font-weight: 34000; 
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #elo-container {
+            display: flex;
+            gap: 30px;
+            background: transparent;
+            padding: 5px 5px;
+            border-radius: 15px;
+            font-size: 30px;
+            font-weight: 500;
+            color: #000000;
+
+        }
+
+        .elo {
+            padding: 5px 10px;
+            background: #ffffff;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+
+        }
+.elo:hover {
+            transform: scale(1.05);
+        }
+
+        .change {
+            font-size: 25px;
+            font-weight: 600;
+            margin-top: 5px;
+
+        }
+
+        .positive { color: #15ff00; } 
+        .negative { color: #ff0000; }
+        .neutral  { color: #000000; }
+    </style>
+</head>
+<body>
+    <div id="elo-container">
+        <div id="elo-rapid" class="elo">Rapide : Chargement...</div>
+        <div id="elo-blitz" class="elo">Blitz : Chargement...</div>
+    </div>
+
+    <script>
+        const username = "Halez4"; 
+        const url = https://api.chess.com/pub/player/${username}/stats;
+
+        let prevEloBlitz = null;
+        let prevEloRapid = null;
+        let totalChangeBlitz = 0;
+        let totalChangeRapid = 0;
+async function fetchElo() {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Problème sur le profil");
+                const data = await response.json();
+
+                totalChangeBlitz = updateElo("elo-blitz", data.chess_blitz, prevEloBlitz, totalChangeBlitz);
+                totalChangeRapid = updateElo("elo-rapid", data.chess_rapid, prevEloRapid, totalChangeRapid);
+
+                prevEloBlitz = data.chess_blitz?.last?.rating  prevEloBlitz;
+                prevEloRapid = data.chess_rapid?.last?.rating  prevEloRapid;
+
+            } catch (error) {
+                document.getElementById("elo-blitz").innerText = "Erreur Profil";
+                document.getElementById("elo-rapid").innerText = "Erreur Profil";
+            }
+        }
+
+        function updateElo(id, data, prevElo, totalChange) {
+            if (data && data.last) {
+                const elo = data.last.rating;
+                const change = prevElo !== null ? elo - prevElo : 0;
+                totalChange += change;
+                const changeClass = change > 0 ? "positive" : change < 0 ? "negative" : "neutral";
+
+                document.getElementById(id).innerHTML = 
+                    ${id.includes("blitz") ? "Blitz" : "Rapide"} : ${elo} Elo
+                    <div class="change ${changeClass}">${totalChange > 0 ? +${totalChange} : totalChange} points</div>
+                ;
+            } else {
+                document.getElementById(id).innerText = "Pas d'Elo disponible";
+            }
+            return totalChange; 
+        }
+
+        fetchElo();
+        setInterval(fetchElo, 5000);
+    </script>
+</body>
+</html>
